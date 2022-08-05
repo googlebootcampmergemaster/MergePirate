@@ -3,7 +3,15 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Plane
+  - Soldier
+  - Melee
+  - Range
+  - Melee2
+  - Melee3
+  - Range2
+  - Range3
   layers:
   - Default
   - TransparentFX
