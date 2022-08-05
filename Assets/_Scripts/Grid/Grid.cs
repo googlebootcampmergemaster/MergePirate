@@ -21,7 +21,7 @@ public class Grid
         {
             for (int y = 0; y < gridArray.GetLength(1); y++)
             {
-                UtilsClass.CreateWorldText(gridArray[x, y].ToString(), null,GetWorldPosition(x, y) + new Vector3(cellSize / 2f, cellSize / 2f, 0), 20, Color.white, TextAnchor.MiddleCenter);
+                UtilsClass.CreateWorldText(gridArray[x, y].ToString(), null,GetWorldPosition(x, y) + new Vector3(cellSize / 2f, cellSize / 2f, 0), 5, Color.white, TextAnchor.MiddleCenter);
                 
             }
         }
