@@ -9,7 +9,7 @@ using TMPro;
 *brief: This script is using to initialize the prefab.
 TODO: Buton türlerine göre init değişimi yapılacak.
 
-! All prefabs must have box collider and Rigidbody.
+! All prefabs must have "box" collider and Rigidbody.
 !! eğer objeler istenmeyen şekilde rotate ediliyor ise obje move halinde iken "diğer" tüm objelerin boxCollider'larını devre dışı bırak!
 
 
@@ -20,11 +20,12 @@ public class InitPrefab : MonoBehaviour
     //! Check spehere distance
     public float sphereRadius = 0.5f;
 
-    //button
+    //buttons
     public Button MeleeButton;
 
     public Button RangeButton;
 
+    //buttons
     public GameObject MeleeLvl1;
 
     public GameObject MeleeLvl2;
@@ -64,31 +65,8 @@ public class InitPrefab : MonoBehaviour
                 //Debug.Log("state 0");
                 if (Input.GetMouseButtonDown(0))
                 {
-                    //Debug.Log("Mouse down");
-                    //create a ray from the camera through the mouse position
-                    Ray rayMouse = gameCamera.ScreenPointToRay(Input.mousePosition);
-                    //check if the ray hits something tagged "Soldier"
-                    if (Physics.Raycast(rayMouse, out RaycastHit hit, 100))
-                    {
-                        //Debug.Log("state 99");
-                        if (
-                            hit.transform.tag.Contains("Melee")
-                            || hit.transform.tag.Contains("Range")
-                        )
-                        {
-                            //disable the MeshCollider on the soldier
-                            hit.transform.GetComponent<BoxCollider>().enabled = false;
-                            //Debug.Log("Click on soldier");
-                            //save obeject to move
-                            objectToPlace = hit.collider.gameObject.transform;
-                            state = 1;
-
-                            //save last position of object to move
-                            ObjLastPos = objectToPlace.position;
-
-                            //move object 0.5 unit up through the y axis
-                        }
-                    }
+                    //check if mouse is over a gameobject that can move, if true set state to 1
+                    CanMove();
                 }
             }
             else if (state == 1)
@@ -96,69 +74,72 @@ public class InitPrefab : MonoBehaviour
                 MoveObject();
                 if (Input.GetMouseButtonDown(0))
                 {
-                    //enable the BoxCollider on the soldier
-                    objectToPlace.GetComponent<BoxCollider>().enabled = true;
-                    //checkSphere for soldier
-                    if (Physics.CheckSphere(objectToPlace.position, sphereRadius))
-                    {
-                        //print near object
-                        Collider[] hitColliders = Physics.OverlapSphere(
-                            objectToPlace.position,
-                            0.2f
-                        );
-
-                        Debug.Log("Yakınlarda" + hitColliders.Length + " cisim mevcut");
-
-                        if (hitColliders.Length == 2)
-                        {
-                            // if (hitColliders[0].tag == objectToPlace.tag)
-                            // {
-                            //     Debug.Log("İkili objeler aynı tagli");
-                            // }
-                            // else
-                            // {
-                            //     Debug.Log("İkili objeler farklı tagli");
-                            // }
-
-                            //check if its possible to level up
-                            if (LevelUp(hitColliders)) { }
-                            else
-                            {
-                                //move back to last position
-                                objectToPlace.position = ObjLastPos;
-                            }
-
-                            // foreach (Collider hitCollider in hitColliders)
-                            // {
-                            //     if (hitCollider.tag == "Melee")
-                            //     //if (hitCollider.tag == objectToPlace.tag)
-                            //     {
-                            //         Debug.Log("Yakınlarda" + hitCollider.name + " cisimi mevcut");
-                            //         Destroy(hitCollider.gameObject);
-                            //     }
-                            // }
-
-                            // //create a new soldier from prefab2
-                            // tempGameObject = Instantiate(
-                            //     MeleeLvl2,
-                            //     objectToPlace.position + new Vector3(0, 0.5f, 0),
-                            //     Quaternion.identity
-                            // );
-                        }
-
-                        //destroy everything in the sphere
-                    }
-                    else
-                    {
-                        Debug.Log("Yakınlarda cisim yok");
-                    }
-
-                    state = 0;
+                    //stop movement and check merge , go to state 0 in any case,
+                    //if merge is not possible re-place the object with last position
+                    MergeCheck();
                 }
             }
 
             yield return null;
         }
+    }
+
+    private void CanMove()
+    {
+        //create a ray from the camera through the mouse position
+        Ray rayMouse = gameCamera.ScreenPointToRay(Input.mousePosition);
+        //check if the ray hits something tagged "Soldier"
+        if (Physics.Raycast(rayMouse, out RaycastHit hit, 100))
+        {
+            if (hit.transform.tag.Contains("Melee") || hit.transform.tag.Contains("Range"))
+            {
+                //disable the MeshCollider on the soldier
+                hit.transform.GetComponent<BoxCollider>().enabled = false;
+
+                //save obeject to move
+                objectToPlace = hit.collider.gameObject.transform;
+                state = 1;
+
+                //save last position of object befeore movement (return to this position if merge is not possible)
+                ObjLastPos = objectToPlace.position;
+
+                //TODO: move object (0.x(5??)) unit up through the y axis
+            }
+        }
+    }
+
+    private void MergeCheck()
+    {
+        //enable the BoxCollider on the soldier
+        objectToPlace.GetComponent<BoxCollider>().enabled = true;
+        //checkSphere for soldier
+        if (Physics.CheckSphere(objectToPlace.position, sphereRadius))
+        {
+            //print near objects
+            Collider[] hitColliders = Physics.OverlapSphere(objectToPlace.position, 0.2f);
+
+            //Debug.Log("Yakınlarda" + hitColliders.Length + " cisim mevcut");
+
+            if (hitColliders.Length == 2)
+            {
+                //check if its possible to level up
+                if (CanLevelUp(hitColliders))
+                {
+                    UpgradeSoldier(hitColliders);
+                }
+                else
+                {
+                    //move soldier back to last position if merge is not possible
+                    objectToPlace.position = ObjLastPos;
+                }
+            }
+        }
+        else
+        {
+            //Debug.Log("Yakınlarda cisim yok");
+        }
+
+        state = 0;
     }
 
     void MoveObject()
@@ -175,24 +156,23 @@ public class InitPrefab : MonoBehaviour
         }
     }
 
-    private bool LevelUp(Collider[] collides)
+    private bool CanLevelUp(Collider[] collides)
     {
         //check if every collides array has same tag
         if (collides[0].tag == collides[1].tag)
         {
+            //if soldiers is max level dont level up
             if (collides[0].tag == "Range3" || collides[0].tag == "Melee3")
             {
                 return false;
             }
 
-            UpgradeSoldier(collides);
+            return true;
         }
         else
         {
             return false;
         }
-
-        return false;
     }
 
     private void UpgradeSoldier(Collider[] collides)
@@ -217,7 +197,7 @@ public class InitPrefab : MonoBehaviour
                 //create a new soldier from prefab3
                 tempGameObject = Instantiate(
                     MeleeLvl3,
-                    objectToPlace.position + new Vector3(0, 0.5f, 0),
+                    objectToPlace.position + new Vector3(0, 1f, 0),
                     Quaternion.identity
                 );
                 break;
@@ -239,7 +219,7 @@ public class InitPrefab : MonoBehaviour
                 //create a new soldier from prefab3
                 tempGameObject = Instantiate(
                     RangeLvl3,
-                    objectToPlace.position + new Vector3(0, 0.5f, 0),
+                    objectToPlace.position + new Vector3(0, 1f, 0),
                     Quaternion.identity
                 );
                 break;
