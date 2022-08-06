@@ -7,13 +7,15 @@ using CodeMonkey.Utils;
 public class GridBuildingSystem : MonoBehaviour
 {
     private GridXZ<GridObject> grid;
-    [SerializeField] private GameObject gridObjectPrefab;
+    [SerializeField] private Transform gridObjectPrefab;
     private void Awake()
     {
         int gridWidth = 8;
         int gridHeight = 8;
-        float gridCellSize = 10f;
-        grid = new GridXZ<GridObject>(gridWidth, gridHeight, gridCellSize, Vector3.zero, (GridXZ<GridObject> grid, int x, int z) => new GridObject(grid, x, z));
+        float cellSizeX = 4f;
+        float cellSizeZ = 8f;
+        //float gridCellSize = 10f;
+        grid = new GridXZ<GridObject>(gridWidth, gridHeight, cellSizeX,cellSizeZ, Vector3.zero, (GridXZ<GridObject> grid, int x, int z) => new GridObject(grid, x, z));
     }
 
     public class GridObject //encapsulates the grid object
@@ -21,6 +23,7 @@ public class GridBuildingSystem : MonoBehaviour
         private GridXZ<GridObject> grid;
         private int x;
         private int z;
+        
         private Transform transform;
 
 
@@ -55,25 +58,45 @@ public class GridBuildingSystem : MonoBehaviour
         
         public override string ToString()
         {
-            return x + " " + z + transform;
+            return x + "," + z + "\n" + transform;
         }
     }
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
-        {   grid.GetXZ(Mouse3D.GetMouseWorldPosition(),out int x, out int z);
-            Debug.Log(x + " " + z);
+        {   
+            grid.GetXZ(Mouse3D.GetMouseWorldPosition(),out int x, out int z);
             GridObject gridObject = grid.GetGridObject(x, z);
             if (gridObject.CanBuild())
-            {   
-                gridObject.SetTransform(gridObjectPrefab.transform);
+            {   Transform buildTransform = Instantiate(gridObjectPrefab, grid.GetWorldPositionCenterOfGrid(x,z),Quaternion.identity);
+                gridObject.SetTransform(buildTransform);
+            }
+            else
+            {
+                UtilsClass.CreateWorldTextPopup("Cannot merge!", Mouse3D.GetMouseWorldPosition());
             }
             
         }
     }
 
-    
+    private void InstantiateGridObjectRandomly(GridXZ<GridObject> gridObject, Transform gridObjectPrefab)
+    {
+        for (int x = 0; x < gridObject.GetWidth() ; x++)
+        {
+            for (int z = 0; z < gridObject.GetHeight(); z++)
+            {
+                if (grid.GetGridObject(x,z).CanBuild())
+                {
+                    Transform buildTransform = Instantiate(gridObjectPrefab, gridObject.GetWorldPositionCenterOfGrid(x,z),Quaternion.identity);
+                    gridObject.GetGridObject(x,z).SetTransform(buildTransform);
+                    break;
+                }
+                break;
+            }
+            break;
+        }
+    }
     
     
 }

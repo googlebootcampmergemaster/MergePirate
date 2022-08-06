@@ -14,15 +14,19 @@ public class GridXZ <TGridObject> // Generic class to create grid in XZ axis
     
     private int width; // width of the grid in grid units
     private int height; // height of the grid in grid units
-    private float cellSize; // size of a grid unit
+    //private float cellSize; // size of a grid unit
+    private float cellSizeX;
+    private float cellSizeZ;
     private Vector3 originPosition; // the world position of the grid origin (bottom left corner)
     private TGridObject[,] gridArray; // 2D array of grid units - default value is null for every section of array
     
-    public GridXZ(int width, int height, float cellSize, Vector3 originPosition, Func<GridXZ<TGridObject>, int, int, TGridObject> createGridObject) {
+    public GridXZ(int width, int height, /*float cellSize*/float cellSizeX, float cellSizeZ, Vector3 originPosition, Func<GridXZ<TGridObject>, int, int, TGridObject> createGridObject) {
         //Func<GridXZ<TGridObject>, int, int, TGridObject> createGridObject - function that creates a grid object from any type of objects
         this.width = width;
         this.height = height;
-        this.cellSize = cellSize;
+        this.cellSizeX = cellSizeX;
+        this.cellSizeZ = cellSizeZ;
+        //this.cellSize = cellSize;
         this.originPosition = originPosition;
 
         gridArray = new TGridObject[width, height];
@@ -39,7 +43,7 @@ public class GridXZ <TGridObject> // Generic class to create grid in XZ axis
 
             for (int x = 0; x < gridArray.GetLength(0); x++) {
                 for (int z = 0; z < gridArray.GetLength(1); z++) {
-                    debugTextArray[x, z] = UtilsClass.CreateWorldText(gridArray[x, z]?.ToString(), null, GetWorldPosition(x, z) + new Vector3(cellSize, 0, cellSize) * .5f, 20, Color.white, TextAnchor.MiddleCenter, TextAlignment.Center);
+                    debugTextArray[x, z] = UtilsClass.CreateWorldText(gridArray[x, z]?.ToString(), null, GetWorldPosition(x, z) + new Vector3(cellSizeX, 0, cellSizeZ) * .5f, 20, Color.white, TextAnchor.MiddleCenter, TextAlignment.Center);
                     Debug.DrawLine(GetWorldPosition(x, z), GetWorldPosition(x, z + 1), Color.white, 100f);
                     Debug.DrawLine(GetWorldPosition(x, z), GetWorldPosition(x + 1, z), Color.white, 100f);
                 }
@@ -60,17 +64,28 @@ public class GridXZ <TGridObject> // Generic class to create grid in XZ axis
         return height;
     }
 
-    public float GetCellSize() {
+    /*public float GetCellSize() {
         return cellSize;
+    }*/
+    public float GetCellSizeX() {
+        return cellSizeX;
+    }
+    public float GetCellSizeZ() {
+        return cellSizeZ;
     }
 
     public Vector3 GetWorldPosition(int x, int z) { // GetWorldPosition is a function that returns the world position of a grid unit
-        return new Vector3(x, 0, z) * cellSize + originPosition;
+        return new Vector3(x * cellSizeX, 0, z* cellSizeZ)  + originPosition;
+    }
+
+    public Vector3 GetWorldPositionCenterOfGrid(int x, int z)
+    {
+        return new Vector3(x * cellSizeX + cellSizeX / 2, 0, z * cellSizeZ + cellSizeZ / 2) + originPosition;
     }
     
     public void GetXZ(Vector3 worldPosition, out int x, out int z) { // it is used to get the grid unit coordinates of a world position
-        x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
-        z = Mathf.FloorToInt((worldPosition - originPosition).z / cellSize);
+        x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSizeX);
+        z = Mathf.FloorToInt((worldPosition - originPosition).z / cellSizeZ);
     }
 
     public void SetGridObject(int x, int z, TGridObject value) { //setting grid object based on grid coordinates
