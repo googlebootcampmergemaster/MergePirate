@@ -12,16 +12,17 @@ TagManager:
   - Melee3
   - Range2
   - Range3
+  - Grid
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Grid
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Enemy
+  - Selected
+  - Character
   - 
   - 
   - 
