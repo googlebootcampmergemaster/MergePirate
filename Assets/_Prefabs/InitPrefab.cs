@@ -9,7 +9,7 @@ using TMPro;
 *brief: This script is using to initialize the prefab.
 TODO: Buton türlerine göre init değişimi yapılacak.
 
-! All prefabs must have box collider and Rigidbody.
+! All prefabs must have "box" collider and Rigidbody.
 !! eğer objeler istenmeyen şekilde rotate ediliyor ise obje move halinde iken "diğer" tüm objelerin boxCollider'larını devre dışı bırak!
 
 
