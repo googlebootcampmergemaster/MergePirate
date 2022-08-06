@@ -13,6 +13,7 @@ TagManager:
   - Range2
   - Range3
   - Grid
+  - Character
   layers:
   - Default
   - TransparentFX
