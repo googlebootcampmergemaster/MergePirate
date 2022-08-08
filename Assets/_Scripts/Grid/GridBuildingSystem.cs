@@ -81,21 +81,26 @@ public class GridBuildingSystem : MonoBehaviour
     }
 
     private void InstantiateGridObjectRandomly(GridXZ<GridObject> gridObject, Transform gridObjectPrefab)
-    {
-        for (int x = 0; x < gridObject.GetWidth() ; x++)
+    {   bool end = false;
+        while (!end)
         {
-            for (int z = 0; z < gridObject.GetHeight(); z++)
+            for (int x = 0; x < gridObject.GetWidth() ; x++)
             {
-                if (grid.GetGridObject(x,z).CanBuild())
+                for (int z = 0; z < gridObject.GetHeight(); z++)
                 {
-                    Transform buildTransform = Instantiate(gridObjectPrefab, gridObject.GetWorldPositionCenterOfGrid(x,z),Quaternion.identity);
-                    gridObject.GetGridObject(x,z).SetTransform(buildTransform);
-                    break;
+                    if (grid.GetGridObject(x,z).CanBuild())
+                    {
+                        Transform buildTransform = Instantiate(gridObjectPrefab, gridObject.GetWorldPositionCenterOfGrid(x,z),Quaternion.identity);
+                        gridObject.GetGridObject(x,z).SetTransform(buildTransform);
+                        end = true;
+                    }
+                    
                 }
-                break;
+                
             }
-            break;
         }
+        
+        
     }
     
     
